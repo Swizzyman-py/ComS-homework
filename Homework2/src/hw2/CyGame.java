@@ -50,7 +50,7 @@ public class CyGame {
 	 */
 	public static final int MONEY_TO_WIN = 400;
 	/**
-	 * The cost of one unit.
+	 * The cost of one unit.player1Square = player1Square % numSquares;
 	 */
 	public static final int UNIT_COST = 50;
 	
@@ -63,61 +63,61 @@ public class CyGame {
 	/**
 	 * The number of squares on the board
 	 */
-	int numSquares;
+	private int numSquares;
 	
 	/**
 	 * Stores which player whose turn it is 
 	 */
-	int currentPlayer;
+	private int currentPlayer;
 	
 	/**
 	 * The square that player 1 is on
 	 */
-	int player1Square;
+	private int player1Square;
 	
 	/**
 	 * The square that player 2 is on
 	 */
-	int player2Square;
+	private int player2Square;
 	
 	/**
 	 * Stores how much money player 1 has
 	 */
-	int player1Money;
+	private int player1Money;
 	
 	/**
 	 * Stores how much money player 2 has
 	 */
-	int player2Money;
+	private int player2Money;
 	
 	/**
 	 * Stores how many units player 1 owns
 	 */
-	int player1Unit;
+	private int player1Unit;
 	
 	/**
 	 * Stores how many units player 2 owns
 	 */
-	int player2Unit;
+	private int player2Unit;
 	
 	/**
 	 * 
 	 */
-	boolean player1Stuck;
+	private boolean player1Stuck;
 	/**
 	 * 
 	 */
-	boolean player2Stuck;
+	private boolean player2Stuck;
 	
 	/**
 	 * 
 	 */
-	boolean player1ExtraTurn;
+	private boolean player1ExtraTurn;
 	
 	/**
 	 * 
 	 */
-	boolean player2ExtraTurn;
+	private boolean player2ExtraTurn;
 	
 	
 	//Constructor(s)
@@ -181,7 +181,7 @@ public class CyGame {
 		else if(thisSquare % 5 == 0) {
 			return PAY_PLAYER;
 		}
-		else if(thisSquare % 7 == 0) {
+		else if(thisSquare % 7 == 0 || thisSquare % 11 == 0) {
 			return EXTRA_TURN;
 		}
 		else if(thisSquare %3 == 0) {
@@ -197,40 +197,77 @@ public class CyGame {
 	
 	public void roll(int value) {
 		if(currentPlayer == 1) {
-			player1Square += value;
-			if(getSquareType(player1Square) == 1) {
-				player1Money += PASS_GO_PRIZE;
-			}
-			if(getSquareType(player1Square) == 2) {
-				player1Square = player2Square;
-			}
-			if(getSquareType(player1Square) == 3) {
-				player1Money -= player2Unit * PAYMENT_PER_UNIT;
-				player2Money += player2Unit * PAYMENT_PER_UNIT;
-			}
-			if(getSquareType(player1Square) == 4) {
-				player1ExtraTurn = true;
+			if(player1Stuck == false) {
+				player1Square += value;
 				
-				
-			}
-			if(getSquareType(player1Square) == 5) {
-				player1Square += 4;
-				if(player1Square <= 3) {
+				if(player1Square >= numSquares) {
+					player1Square = player1Square % numSquares;
 					player1Money += PASS_GO_PRIZE;
 				}
+				
+				player1ExtraTurn = false;
+				if(getSquareType(player1Square) == 1) {
+					player1Money += PASS_GO_PRIZE;
+				}
+				if(getSquareType(player1Square) == 2) {
+					player1Square = player2Square;
+				}
+				if(getSquareType(player1Square) == 3) {
+					player1Money -= player2Unit * PAYMENT_PER_UNIT;
+					player2Money += player2Unit * PAYMENT_PER_UNIT;
+				}
+				if(getSquareType(player1Square) == 4) {
+					player1ExtraTurn = true;
+				}
+				
+				if(getSquareType(player1Square) == 5) {
+					player1Square += 4;
+					if(player1Square <= 3) {
+						player1Money += PASS_GO_PRIZE;
+					}
+				}
+				if(getSquareType(player1Square) == 6) {
+					player1Stuck = true;
+				}
 			}
-			if(getSquareType(player1Square) == 6) {
-				player1Stuck = true;
+		}
+		else if(currentPlayer == 2) {
+			if(player2Stuck == false) {
+
+				player2Square += value;
+				if(player2Square >= numSquares) {
+					player2Square = player2Square % numSquares;
+					player2Money += PASS_GO_PRIZE;	
+				}
+				player2ExtraTurn = false;
+				if(getSquareType(player2Square) == 1) {
+					player2Money += PASS_GO_PRIZE;
+				}
+				if(getSquareType(player2Square) == 2) {
+					player2Square = player1Square;
+				}
+				if(getSquareType(player2Square) == 3) {
+					player2Money -= player1Unit * PAYMENT_PER_UNIT;
+					player1Money += player1Unit * PAYMENT_PER_UNIT;
+				}
+				if(getSquareType(player2Square) == 4) {
+					player2ExtraTurn = true;
+					
+					
+				}
+				if(getSquareType(player2Square) == 5) {
+					player2Square += 4;
+					if(player2Square <= 3) {
+						player2Money += PASS_GO_PRIZE;
+					}
+				}
+				if(getSquareType(player2Square) == 6) {
+					player2Stuck = true;
+				}
 			}
 		}
-		
-		
-		if(currentPlayer == 1 && player1ExtraTurn == false) {
-			currentPlayer = 2;
-		}
-		else {
-			currentPlayer = 1;
-		}
+		endTurn();
+
 	}
 	
 	public void sellUnit() {
@@ -242,7 +279,12 @@ public class CyGame {
 	}
 	
 	public void endTurn() {
-		
+		if(currentPlayer == 1 && player1ExtraTurn == false) {
+			currentPlayer = 2;
+		}
+		else if(currentPlayer == 2 && player2ExtraTurn == false){
+			currentPlayer = 1;
+		}
 	}
 	/**
 	 * Returns a boolean value of weather or not the game is over. The game always ends in one of two ways.
@@ -253,10 +295,10 @@ public class CyGame {
 	 * @return
 	 */
 	public boolean isGameEnded() {
-		if(player1Money > MONEY_TO_WIN || player1Money < 0) {
+		if( (player1Money >= MONEY_TO_WIN) || (player1Money < 0) ) {
 			return true;
 		}
-		else if(player2Money > MONEY_TO_WIN || player2Money < 0) {
+		if( (player2Money >= MONEY_TO_WIN) || (player2Money < 0) ) {
 			return true;
 		}
 		
