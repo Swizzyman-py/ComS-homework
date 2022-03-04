@@ -259,6 +259,7 @@ public class CyGame {
 		else if(player2Money > MONEY_TO_WIN || player2Money < 0) {
 			return true;
 		}
+		
 		return false;
 	}
 	
